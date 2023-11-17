@@ -141,18 +141,21 @@ def add_qty(id,wh,suppID,qty):
 
     if rows > 0:
         currentQty = c.fetchone()
-        updatedVal = int(currentQty[0]) + int(qty)
 
-        query = """UPDATE PARTS SET quantity=%s WHERE part_number=%s AND warehouse_id=%s AND supplier_id=%s"""
-        rowsImpact = c.execute(query, [updatedVal, id, wh, suppID])
+        if currentQty[0] != None:
+            updatedVal = int(currentQty[0]) + int(qty)
 
-        if rowsImpact > 0:
-            return jsonify({'result': 'OK -- UPDATED', 'pn': id, 'warehouse':wh, 'supplier':suppID, 'newQty': updatedVal}), 200
+            query = """UPDATE PARTS SET quantity=%s WHERE part_number=%s AND warehouse_id=%s AND supplier_id=%s"""
+            rowsImpact = c.execute(query, [updatedVal, id, wh, suppID])
+
+            if rowsImpact > 0:
+                return jsonify({'result': 'OK -- UPDATED', 'pn': id, 'warehouse':wh, 'supplier':suppID, 'newQty': updatedVal}), 200
+            else:
+                return jsonify({'result': 'ERROR', 'msg': 'part number/supplierid/warehouse combo could not be increased'}), 400
         else:
-            return jsonify({'result': 'ERROR', 'msg': 'part number/supplierid/warehouse combo could not be increased'}), 400
+            return jsonify({'result': 'ERROR', 'msg': 'part number/supplierid/warehouse combo does not exist'}), 400
     else:
-        return jsonify({'result': 'ERROR', 'msg': 'part number/supplierid/warehouse combo does not exist'}), 400
-
+        return jsonify({'result': 'ERROR', 'msg': 'could not query database'}), 400
 
 #Updates the quantity of a part number, supplier id in a warehouse to the specified amount
 @app.put('/updateQty/<string:id>/<int:wh>/<string:suppID>/<int:qty>')
